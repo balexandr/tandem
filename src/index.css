@@ -1,0 +1,148 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0f1410;
+  --bg-surface: #141c0d;
+  --surface: #1a2410;
+  --surface-hover: #212d14;
+  --surface-elevated: #2b3a1a;
+  --text: #f4f8ec;
+  --text-secondary: #c3d9a0;
+  --text-dim: #6f8556;
+  --accent: #84cc16;
+  --accent-hover: #a3e635;
+  --accent-subtle: rgba(132, 204, 22, 0.16);
+  --accent-glow: rgba(132, 204, 22, 0.32);
+  --correct: #a3e635;
+  --correct-subtle: rgba(163, 230, 53, 0.12);
+  --wrong: #fb7185;
+  --wrong-subtle: rgba(251, 113, 133, 0.1);
+  --border: rgba(195, 217, 160, 0.1);
+  --border-hover: rgba(195, 217, 160, 0.2);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.6);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Arcade energy floor, not another dark-card grid — this is the game's
+   one big chance to NOT look like every other NoodleGame's flat dark
+   background (see the "Visual identity" note in GAME_DESIGN.md). Deep
+   near-black base, a searchlight burst of rays rising from below like a
+   stage/arcade cabinet, and a scattering of drifting spark motes. */
+body {
+  background-color: #070905;
+  background-image:
+    radial-gradient(ellipse at 50% 118%, rgba(132, 204, 22, 0.20) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 0%, rgba(163, 230, 53, 0.07) 0%, transparent 45%),
+    linear-gradient(180deg, #0e130a 0%, #060804 100%);
+  background-attachment: fixed;
+}
+
+#root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Rotating searchlight rays, anchored low so they read as light rising
+   from an arcade floor rather than a decorative wallpaper pattern. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20% -60% -60%;
+  pointer-events: none;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 100%,
+    transparent 0deg 7deg,
+    rgba(132, 204, 22, 0.05) 7deg 8deg
+  );
+  mask-image: radial-gradient(ellipse at 50% 100%, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 100%, black 0%, transparent 70%);
+  animation: raySweep 90s linear infinite;
+  z-index: 0;
+}
+
+@keyframes raySweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Drifting spark motes — same visual language as the match-effect and
+   result-screen sparks, just ambient and much sparser, so a correct
+   match's burst reads as "more of the thing already in the air" rather
+   than an unrelated effect appearing from nowhere. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(163, 230, 53, 0.9) 1.4px, transparent 1.8px),
+    radial-gradient(circle, rgba(132, 204, 22, 0.7) 1.1px, transparent 1.5px),
+    radial-gradient(circle, rgba(163, 230, 53, 0.6) 1px, transparent 1.4px);
+  background-size: 240px 260px, 190px 210px, 160px 300px;
+  background-position: 20px 40px, 140px 180px, 60px 260px;
+  animation: sparkDrift 22s linear infinite, sparkTwinkle 3.4s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes sparkDrift {
+  from { background-position: 20px 40px, 140px 180px, 60px 260px; }
+  to   { background-position: 20px -220px, 140px -30px, 60px -40px; }
+}
+
+@keyframes sparkTwinkle {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+button {
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
