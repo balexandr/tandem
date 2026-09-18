@@ -99,3 +99,64 @@ export function computeRefill({ board, freedSlots, poolIndex, orphanQueue, pool,
 
   return { board: nextBoard, poolIndex: nextPoolIndex, orphanQueue: nextOrphanQueue };
 }
+
+// Matching now accepts ANY real compound on the board, not just the exact
+// pair a tile was originally dealt as (see isValidCompound in wordBank.js).
+// That means a cross-pair match (BACK from BACK+PACK matched against FIRE
+// from FIRE+FLY, forming BACKFIRE) leaves each word's original designated
+// partner (PACK, FLY) orphaned somewhere: either sitting on the board
+// already, or still withheld in orphanQueue waiting to be revealed later.
+// Most of the time an orphaned word still has SOME other valid compound
+// available on the board, so there's nothing to do. But if it doesn't (its
+// only real partner in the whole bank was the word that just got used
+// elsewhere), it deadlocks: an on-board leftover sits dead for the rest of
+// the run, and a still-queued one is worse, since it gets placed later with
+// NO completion possibly coming, which fuzzing (see the "Any real compound
+// counts" section of GAME_DESIGN.md) proved can starve the whole board of
+// matches well before the pool runs out. This drops any now-unfulfillable
+// queue entry before it's ever placed, and re-rolls a truly-stranded
+// on-board leftover into a fresh pair, instead of leaving either to rot.
+export function rescueStranded({ board, freedSlots, matchedPairIds, poolIndex, orphanQueue, pool, isValidCompound }) {
+  if (matchedPairIds[0] === matchedPairIds[1]) {
+    // Not a cross-match: both tiles were each other's own dealt partner,
+    // so there's no orphan to check.
+    return { board, poolIndex, orphanQueue };
+  }
+
+  // A queued entry whose pairId matches either word we just matched away
+  // was waiting specifically for that word, which is now gone for good.
+  // Drop it rather than let it get placed later with nothing to complete
+  // it. Losing an occasional queued word is a fair trade for never
+  // deadlocking. `.filter` always returns a fresh array, so nextOrphanQueue
+  // is already a safe-to-mutate copy regardless of whether anything matched.
+  const nextOrphanQueue = orphanQueue.filter((entry) => !matchedPairIds.includes(entry.pairId));
+
+  let nextBoard = board;
+  let nextPoolIndex = poolIndex;
+  let boardCloned = false;
+
+  for (const pairId of matchedPairIds) {
+    const leftoverIndex = nextBoard.findIndex((c, i) => c && !freedSlots.includes(i) && c.pairId === pairId);
+    if (leftoverIndex === -1) continue;
+
+    const leftoverWord = nextBoard[leftoverIndex].word;
+    const stillMatchable = nextBoard.some((c, i) => {
+      if (!c || i === leftoverIndex) return false;
+      return isValidCompound(c.word, leftoverWord) || isValidCompound(leftoverWord, c.word);
+    });
+    if (stillMatchable) continue;
+    if (nextPoolIndex >= pool.length) continue; // pool exhausted, nothing better available
+
+    if (!boardCloned) {
+      nextBoard = [...nextBoard];
+      boardCloned = true;
+    }
+    const pair = pool[nextPoolIndex];
+    const freshPairId = nextPoolIndex;
+    nextPoolIndex += 1;
+    nextBoard[leftoverIndex] = { word: pair[0], pairId: freshPairId, role: 'first' };
+    nextOrphanQueue.push({ pairId: freshPairId, word: pair[1] });
+  }
+
+  return { board: nextBoard, poolIndex: nextPoolIndex, orphanQueue: nextOrphanQueue };
+}

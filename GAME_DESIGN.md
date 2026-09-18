@@ -465,3 +465,92 @@ time now extending on every match, reaching 12+ pairs is a matter of
 patience more than speed for anyone who doesn't miss — those thresholds
 may need retuning once real runs happen, same "watch and adjust" pattern
 as everything else in this doc.
+
+## Any real compound counts: 2026-09-17, opening pairs also tuned same day
+
+User hit BACK + FIRE while playing (backfire, a real compound) and it
+registered as wrong. Root cause wasn't a bank gap: BACK was dealt as
+BACK+PACK, FIRE as FIRE+FLY, and the match check required the exact dealt
+pairId, so a real compound between two words from DIFFERENT dealt pairs
+was always rejected. Same underlying complaint as the "only like 2 words
+usable" feedback earlier that day (which prompted opening the board with
+EASY_PAIRS-biased pairs, see the wordBank.js `selectDailyPool` change
+above): the strict pairId rule made most of a 16-word board decorative.
+
+Fix: `isValidCompound(first, second)` in `wordBank.js` (a lookup built
+from every WORD_BANK entry) replaces the old `pairId`/`role` equality
+check in `useGameState.js`'s click handler. Any two tiles that form a
+real compound in click order now match, not just the pair they were
+originally dealt as.
+
+That surfaced a real second-order problem, caught by fuzzing before it
+shipped rather than by a player report: a cross-pair match can strand
+the matched words' ORIGINAL designated partners two different ways,
+either sitting on the board already (its own partner now gone), or worse,
+still sitting in `orphanQueue` waiting to be revealed with a completion
+that will never come. The first fuzz pass (300 simulated days x 150
+forced matches against the real 130-pair daily pool) found dead boards as
+early as match #24, with 40-90+ pairs still unused in the pool: a real
+deadlock, not content exhaustion.
+
+Fixed with `rescueStranded()` in `refill.js`, run right after
+`computeRefill` on every match: drops any orphan-queue entry whose
+designated partner was just consumed by a cross-match (rather than let it
+get placed later with nothing to complete it), and re-rolls a genuinely
+stranded on-board leftover into a fresh pair instead of leaving it dead.
+Re-ran the same fuzz harness after the fix: 0 premature dead boards across
+300 days x up to 400 forced matches (over twice the original stress
+level) against the real pool, and 0 duplicate words ever on the board
+simultaneously. Remaining "dead boards" in the results are genuine content
+exhaustion (poolIndex already at pool.length), the same accepted,
+pre-existing limit as before, not a new one. At a realistic pace, roughly
+1 in 10 matches is a cross-pair bonus match and rescues fire on about 1%
+of matches: frequent enough to feel like a real mechanic, rare enough not
+to visibly reshuffle the board's intended content most of the time.
+
+Not yet verified live in-browser (fuzz-tested only). The underlying
+`computeRefill` invariant math (the "at least ~3 of 8 pairs findable"
+tuning) is untouched, so difficulty pacing shouldn't shift, but that's
+reasoning, not a measurement, same caveat as everywhere else in this doc.
+
+## Time bonus only applied on the first match, 2026-09-18
+
+User reported: matching a pair didn't add +15s. Reproduced with
+Playwright against a real running instance (not just reasoning about
+the code): the very first match of a run got its bonus correctly (60
+to 75), but every match after that silently didn't (75 to 74 instead
+of 90, one tick down with no bonus at all, PAIRS still incremented
+correctly).
+
+Root cause was in the original "Time bonus" mechanism above, not
+anything from today's matching change. `handleCellClick` wrote a
+`matchOutcomeRef.current` flag inside `setGame`'s functional updater,
+then read that ref synchronously right after calling `setGame`, on
+the assumption that React always runs a functional updater eagerly at
+call time. It doesn't: that's an internal bailout optimization React
+applies under specific conditions, not a guarantee, and once other
+state was already in flight (any run past the very first match) the
+updater stopped running eagerly, so the ref read outside still saw
+its stale reset-to-null value. This is why the original build's own
+"Confirmed live in-browser" note only ever describes a single match,
+never a sequence: a second-match test would have caught this
+immediately.
+
+Fixed by dropping the ref side-channel entirely. A new effect watches
+`game.timeBonusToken` (already incremented on every match) against an
+`appliedTimeBonusToken` ref, and applies the bonus and any
+boardCleared-triggered game end whenever the real committed state
+shows a new token value. This only depends on state React has
+actually committed, not on when an updater happens to run, so it
+can't go stale the way the old pattern could.
+
+Verified with Playwright against the dev server: three matches in a
+row (LIGHT+HOUSE, DOOR+BELL, SEA+SHELL) with a real 2.5s wait between
+two of them to rule out an interval-timing issue, not just an
+instant-click one. Timer went 60 to 75 to 89 to 86 (waiting) to 100,
+every one of the three matches applying its +15s correctly, PAIRS
+counting 1, 2, 3. Not yet redeployed live: this session's Tandem work
+(EASY_PAIRS opening bias, the any-real-compound matching change, the
+word-bank sweeps, and this fix) has all been sitting uncommitted and
+undeployed since the initial gh-pages push, so the live site is still
+running the very first build.

@@ -100,7 +100,7 @@ export const WORD_BANK = [
   ['LIFE', 'GUARD'], ['LIFE', 'BOAT'], ['LIFE', 'STYLE'], ['LIFE', 'LINE'],
   ['LIFE', 'SPAN'], ['LIFE', 'LONG'], ['BED', 'ROOM'], ['BED', 'TIME'],
   ['BED', 'SPREAD'], ['BED', 'ROCK'], ['BED', 'SIDE'], ['BATH', 'ROOM'],
-  ['BATH', 'ROBE'], ['BATH', 'TUB'], ['SWIM', 'SUIT'], ['SWIM', 'WEAR'],
+  ['BATH', 'ROBE'], ['BATH', 'TUB'], ['BATH', 'HOUSE'], ['SWIM', 'SUIT'], ['SWIM', 'WEAR'],
   ['CLASS', 'ROOM'], ['CLASS', 'MATE'], ['BALL', 'ROOM'], ['REST', 'ROOM'],
   ['STORE', 'ROOM'], ['WORK', 'SHOP'], ['WORK', 'OUT'], ['WORK', 'FORCE'],
   ['WORK', 'LOAD'], ['WORK', 'PLACE'], ['WORK', 'BOOK'], ['WORK', 'BENCH'],
@@ -248,7 +248,35 @@ export const WORD_BANK = [
   ['TONE', 'DEAF'], ['TOW', 'TRUCK'], ['TRIP', 'WIRE'], ['WALK', 'OUT'],
   ['WALK', 'WAY'], ['WEIGHT', 'LOSS'], ['WHEEL', 'HOUSE'], ['WHEEL', 'BARROW'],
   ['WORD', 'PLAY'],
+
+  // 2026-09-18: user asked for a broader cross-check ("comparing most
+  // words together"), prompted by BATH+HOUSE (bathhouse) missing (fixed
+  // separately, in the BATH group above). Every prior sweep checked
+  // second-only words for first-half validity; this one runs the OTHER
+  // direction for the first time. Pulled every word that's currently
+  // first-only (166 of them) and checked each for a real compound where
+  // it's the SECOND half instead, using a first-word already in the bank.
+  // 19 found. Two (BLUE+COLLAR, WHITE+COLLAR) and OFF+WHITE are common
+  // hyphenated-adjective compounds rather than solid nouns, same category
+  // WORLD+WIDE already sets precedent for, not a new exception.
+  ['MID', 'AIR'], ['POT', 'BELLY'], ['PLAY', 'BILL'], ['WILD', 'CAT'],
+  ['RAIN', 'CHECK'], ['CORN', 'COB'], ['BLUE', 'COLLAR'], ['WHITE', 'COLLAR'],
+  ['SNOW', 'DRIFT'], ['FISH', 'EYE'], ['TAIL', 'GATE'], ['EYE', 'GLASS'],
+  ['OVER', 'LAP'], ['BALL', 'PARK'], ['OVER', 'RUN'], ['UNDER', 'SCORE'],
+  ['OFF', 'SPRING'], ['OFF', 'WHITE'], ['TAIL', 'WIND'],
 ];
+
+// Lookup for "is FIRST+SECOND a real compound", regardless of which pair
+// either word was originally dealt as part of. Matching used to require
+// the exact dealt pairId (see git history): that rejected real compounds
+// like BACKFIRE whenever BACK and FIRE happened to be dealt as halves of
+// two different pairs (BACK+PACK, FIRE+FLY). Any ordered pair already in
+// WORD_BANK now counts as a valid match on the board.
+const COMPOUND_LOOKUP = new Set(WORD_BANK.map(([first, second]) => `${first}|${second}`));
+
+export function isValidCompound(first, second) {
+  return COMPOUND_LOOKUP.has(`${first}|${second}`);
+}
 
 // Deterministic string -> uint32 seed (same string always yields same seed,
 // same convention as the rest of the suite keying daily puzzles off a date
@@ -278,8 +306,8 @@ export function mulberry32(seed) {
 
 // Subset of WORD_BANK entries most players recognize on sight (short,
 // everyday compounds). The board deals its OPENING pairs complete and
-// findable no matter what (see buildInitialBoard in useGameState.js) — so
-// initial difficulty was never about missing partners, it was about
+// findable no matter what (see buildInitialBoard in useGameState.js), so
+// initial difficulty was never about missing partners: it was about
 // scanning 16 unfamiliar words cold. Biasing which pairs land in those
 // opening slots toward this list is the actual lever. Every entry here is
 // copied verbatim from WORD_BANK above, not new content.
@@ -308,7 +336,7 @@ const EASY_OPENING_COUNT = 8;
 // never ends up with an ambiguous or orphaned word. The first
 // EASY_OPENING_COUNT pairs returned are drawn from EASY_PAIRS (still
 // shuffled per day) so the opening board is easier to parse; everything
-// after that — including every refill mid-run — draws from the full bank
+// after that, including every refill mid-run, draws from the full bank
 // same as before, so the difficulty ramp already tuned in refill.js is
 // untouched.
 export function selectDailyPool(dateKey, count = 28) {

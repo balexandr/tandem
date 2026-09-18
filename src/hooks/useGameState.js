@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { selectDailyPool, seedFromString, mulberry32 } from '../data/wordBank';
+import { selectDailyPool, seedFromString, mulberry32, isValidCompound } from '../data/wordBank';
 import { getTier, formatElapsed } from '../utils/scoring';
-import { computeRefill } from '../utils/refill';
+import { computeRefill, rescueStranded } from '../utils/refill';
 
 const STORAGE_KEY = 'tandem-game-state';
 const EPOCH = '2026-09-15';
@@ -85,12 +85,17 @@ export function useGameState() {
   const [initialized, setInitialized] = useState(false);
 
   const timerRef = useRef(null);
-  // Side-channel for handleCellClick: the match outcome is decided inside
-  // setGame's functional updater (to read the true latest state), but the
-  // time-bonus and early-end decisions below need that outcome back out
-  // in the same handler call — a ref written synchronously inside the
-  // updater is the standard escape hatch for that.
-  const matchOutcomeRef = useRef(null);
+  // Tracks the last timeBonusToken we've already applied a bonus for, so
+  // the effect below (which fires whenever a match bumps that token) never
+  // double-applies on a re-render. Previously this was done by writing a
+  // ref inside setGame's functional updater and reading it synchronously
+  // right after calling setGame, relying on React running that updater
+  // eagerly. That only actually happens on some renders (an internal
+  // optimization, not a guarantee): confirmed live that the very first
+  // match of a run got its +15s but every match after that silently
+  // didn't. Watching the real committed state via an effect instead is
+  // dependable regardless of React's internal scheduling.
+  const appliedTimeBonusToken = useRef(0);
 
   // Init — restore today's in-progress or finished attempt if one exists,
   // otherwise deal a fresh board. One attempt per day once it ends (see
@@ -168,6 +173,18 @@ export function useGameState() {
     return () => clearTimeout(t);
   }, [game && game.correctToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Apply the +15s time bonus (and any board-cleared early end) exactly
+  // once per match, driven by the real committed timeBonusToken rather
+  // than a same-tick ref read. See appliedTimeBonusToken's comment above.
+  useEffect(() => {
+    if (!game) return;
+    if (game.timeBonusToken > appliedTimeBonusToken.current) {
+      appliedTimeBonusToken.current = game.timeBonusToken;
+      setTimeLeft((t) => t + TIME_BONUS_SECONDS);
+      if (game.boardCleared) setGameStatus('ended');
+    }
+  }, [game && game.timeBonusToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Persist every relevant change.
   useEffect(() => {
     if (!initialized || !game) return;
@@ -187,7 +204,6 @@ export function useGameState() {
 
   const handleCellClick = useCallback((index) => {
     if (gameStatus === 'ended') return;
-    matchOutcomeRef.current = null;
     setGame((prev) => {
       if (!prev) return prev;
       const cell = prev.board[index];
@@ -201,25 +217,40 @@ export function useGameState() {
       }
 
       const firstCell = prev.board[prev.selectedIndex];
-      const isMatch = firstCell.pairId === cell.pairId
-        && firstCell.role === 'first'
-        && cell.role === 'second';
+      // Any real compound counts now, not just the exact pair a tile was
+      // originally dealt as. See isValidCompound in wordBank.js for why:
+      // strict pairId matching rejected true compounds like BACKFIRE
+      // whenever BACK and FIRE landed as halves of two different pairs.
+      const isMatch = isValidCompound(firstCell.word, cell.word);
 
       if (isMatch) {
         const freedSlots = [prev.selectedIndex, index];
-        const { board: nextBoard, poolIndex: nextPoolIndex, orphanQueue } = computeRefill({
+        const refilled = computeRefill({
           board: prev.board,
           freedSlots,
           poolIndex: prev.poolIndex,
           orphanQueue: prev.orphanQueue,
           pool,
         });
+        // A cross-pair match (firstCell and cell weren't each other's own
+        // dealt partner) can leave each one's real designated partner
+        // stranded elsewhere on the board. Rescue it if it's now
+        // unmatchable rather than let it sit dead. See rescueStranded's
+        // comment in refill.js.
+        const { board: nextBoard, poolIndex: nextPoolIndex, orphanQueue } = rescueStranded({
+          board: refilled.board,
+          freedSlots,
+          matchedPairIds: [firstCell.pairId, cell.pairId],
+          poolIndex: refilled.poolIndex,
+          orphanQueue: refilled.orphanQueue,
+          pool,
+          isValidCompound,
+        });
         // Only reachable once the pool is fully drawn AND nothing's left
         // waiting to complete — every pair in today's set has been found.
         // See "Time bonus" in GAME_DESIGN.md: this was near-impossible in
         // a hard 60s cap, but a real outcome now that matches extend time.
         const boardCleared = nextBoard.every((c) => c === null);
-        matchOutcomeRef.current = { matched: true, boardCleared };
 
         return {
           board: nextBoard,
@@ -236,7 +267,6 @@ export function useGameState() {
         };
       }
 
-      matchOutcomeRef.current = { matched: false };
       return {
         ...prev,
         selectedIndex: null,
@@ -245,10 +275,6 @@ export function useGameState() {
       };
     });
 
-    if (matchOutcomeRef.current?.matched) {
-      setTimeLeft((t) => t + TIME_BONUS_SECONDS);
-      if (matchOutcomeRef.current.boardCleared) setGameStatus('ended');
-    }
     setGameStatus((s) => (s === 'ready' ? 'playing' : s));
   }, [gameStatus, pool]);
 
@@ -258,7 +284,7 @@ export function useGameState() {
     const pairWord = game.score === 1 ? 'pair' : 'pairs';
     // Actual time played, not a fixed "60s" — matches extend the clock now,
     // so a real run's length varies. See "Time bonus" in GAME_DESIGN.md.
-    const lines = [`Tandem #${puzzleNumber} 🍜`, `${game.score} ${pairWord} in ${formatElapsed(elapsedSeconds)}`];
+    const lines = [`Tandem #${puzzleNumber} 🤝`, `${game.score} ${pairWord} in ${formatElapsed(elapsedSeconds)}`];
     // No placeholder line at all for a 0-star run — a dash there reads as
     // an error, not "no stars yet." Two lines is a perfectly normal share.
     if (tier > 0) lines.push('⭐'.repeat(tier));
