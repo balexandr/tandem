@@ -28,6 +28,8 @@ export default function App() {
     elapsedSeconds,
     boardCleared,
     handleCellClick,
+    handleShuffle,
+    missedIndices,
     generateShareText,
   } = useGameState();
 
@@ -36,6 +38,16 @@ export default function App() {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [resultDismissed, setResultDismissed] = useState(false);
+  // Hold the result modal back a beat when time runs out so the player sees
+  // the frozen board with missed pairs highlighted first — the "duh" moment
+  // only lands if they actually see it before being whisked to the share
+  // screen. Same pattern as Dial's win-reveal delay.
+  const [revealResult, setRevealResult] = useState(false);
+  useEffect(() => {
+    if (gameStatus !== 'ended') { setRevealResult(false); return; }
+    const t = setTimeout(() => setRevealResult(true), 1600);
+    return () => clearTimeout(t);
+  }, [gameStatus]);
   const [shareAllCount, setShareAllCount] = useState(0);
   const [shareAllCopied, setShareAllCopied] = useState(false);
   const currentYear = new Date().getFullYear();
@@ -150,6 +162,23 @@ export default function App() {
                 CSS pop animation for free — no extra state needed. */}
             <span key={score} className={styles.scoreValue}>{score}</span>
           </div>
+          <button
+            type="button"
+            className={styles.shuffleButton}
+            onClick={handleShuffle}
+            disabled={gameStatus === 'ended'}
+            aria-label="Shuffle board"
+          >
+            <svg className={styles.shuffleIcon} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M17 3h4v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M21 3l-6.5 6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3 21l5.5-5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M17 21h4v-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M21 21l-5.5-5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M3 3l4.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Shuffle
+          </button>
         </div>
 
         <TandemGrid
@@ -157,6 +186,7 @@ export default function App() {
           selectedIndex={selectedIndex}
           wrongFlash={wrongFlash}
           correctFlash={correctFlash}
+          missedIndices={gameStatus === 'ended' ? missedIndices : []}
           onCellClick={handleCellClick}
           locked={gameStatus === 'ended'}
         />
@@ -171,9 +201,14 @@ export default function App() {
             Wrong guesses are free, no penalty. Just keep going
           </p>
         )}
+        {gameStatus === 'ended' && missedIndices.length > 0 && (
+          <p className={styles.hint}>
+            Time's up! The glowing tiles were pairs waiting to be found
+          </p>
+        )}
       </main>
 
-      {gameStatus === 'ended' && !resultDismissed && (
+      {gameStatus === 'ended' && revealResult && !resultDismissed && (
         <ResultScreen
           puzzleNumber={puzzleNumber}
           score={score}

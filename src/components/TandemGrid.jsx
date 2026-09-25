@@ -1,6 +1,6 @@
 import styles from './TandemGrid.module.css';
 
-export default function TandemGrid({ board, selectedIndex, wrongFlash, correctFlash, onCellClick, locked }) {
+export default function TandemGrid({ board, selectedIndex, wrongFlash, correctFlash, missedIndices = [], onCellClick, locked }) {
   return (
     <div className={styles.boardFrame}>
       <div className={styles.grid}>
@@ -9,6 +9,7 @@ export default function TandemGrid({ board, selectedIndex, wrongFlash, correctFl
           const isSelected = selectedIndex === i;
           const isWrong = wrongFlash.includes(i);
           const isMatched = correctFlash.includes(i);
+          const isMissed = missedIndices.includes(i);
           const label = isEmpty ? 'empty slot' : cell.word;
           return (
             <button
@@ -19,11 +20,12 @@ export default function TandemGrid({ board, selectedIndex, wrongFlash, correctFl
                 isSelected ? styles.selected : '',
                 isWrong ? styles.wrong : '',
                 isMatched ? styles.matched : '',
+                isMissed ? styles.missed : '',
                 isEmpty ? styles.empty : '',
               ].filter(Boolean).join(' ')}
               onClick={() => onCellClick(i)}
               disabled={locked || isEmpty}
-              aria-label={label}
+              aria-label={isMissed ? `${label}, a pair you missed` : label}
             >
               {cell ? cell.word : ''}
             </button>

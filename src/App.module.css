@@ -185,6 +185,45 @@
   100% { transform: scale(1); color: var(--text-secondary); }
 }
 
+.shuffleButton {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 45%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .shuffleButton:not(:disabled):hover {
+    background: var(--surface-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+}
+
+.shuffleButton:not(:disabled):active {
+  transform: scale(0.94) rotate(-8deg);
+}
+
+.shuffleButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.shuffleIcon {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
 /* ── Hint text ────────────────────────────────── */
 .hint {
   margin-top: 12px;

@@ -278,6 +278,58 @@ export function useGameState() {
     setGameStatus((s) => (s === 'ready' ? 'playing' : s));
   }, [gameStatus, pool]);
 
+  // Rearranges only the tiles currently on the board — same pairs, same
+  // score, same pool/orphanQueue, just new positions. A pure cosmetic
+  // shuffle for when the grid feels stuck, not a new deal. Uses plain
+  // Math.random rather than the seeded rng since it's player-triggered and
+  // not part of the deterministic daily puzzle (same reasoning as refill
+  // slot placement above).
+  const handleShuffle = useCallback(() => {
+    if (gameStatus === 'ended') return;
+    setGame((prev) => {
+      if (!prev) return prev;
+      const filledSlots = prev.board.reduce((acc, cell, i) => {
+        if (cell) acc.push(i);
+        return acc;
+      }, []);
+      const values = filledSlots.map((i) => prev.board[i]);
+      for (let i = values.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [values[i], values[j]] = [values[j], values[i]];
+      }
+      const nextBoard = prev.board.slice();
+      filledSlots.forEach((slot, k) => { nextBoard[slot] = values[k]; });
+      return { ...prev, board: nextBoard, selectedIndex: null };
+    });
+  }, [gameStatus]);
+
+  // Once time's up, find every still-on-board pair that would have matched
+  // (checked both click orders, since order-of-click determines validity,
+  // not which cell happens to sit where) — the "duh, that was right there"
+  // set to highlight on the frozen board. Board is locked and un-shuffleable
+  // once ended, so this is safe to memoize off the stable ended-state board.
+  const missedIndices = useMemo(() => {
+    if (gameStatus !== 'ended' || !game) return [];
+    const filled = game.board.reduce((acc, cell, i) => {
+      if (cell) acc.push(i);
+      return acc;
+    }, []);
+    const missed = new Set();
+    for (let a = 0; a < filled.length; a++) {
+      for (let b = a + 1; b < filled.length; b++) {
+        const i = filled[a];
+        const j = filled[b];
+        const wordA = game.board[i].word;
+        const wordB = game.board[j].word;
+        if (isValidCompound(wordA, wordB) || isValidCompound(wordB, wordA)) {
+          missed.add(i);
+          missed.add(j);
+        }
+      }
+    }
+    return [...missed];
+  }, [gameStatus, game]);
+
   const generateShareText = useCallback(() => {
     if (!game || gameStatus !== 'ended') return '';
     const tier = getTier(game.score);
@@ -306,6 +358,8 @@ export function useGameState() {
     timeBonusToken: game?.timeBonusToken ?? 0,
     boardCleared: game?.boardCleared ?? false,
     handleCellClick,
+    handleShuffle,
+    missedIndices,
     generateShareText,
   };
 }
