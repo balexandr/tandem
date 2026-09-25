@@ -303,31 +303,34 @@ export function useGameState() {
     });
   }, [gameStatus]);
 
-  // Once time's up, find every still-on-board pair that would have matched
-  // (checked both click orders, since order-of-click determines validity,
-  // not which cell happens to sit where) — the "duh, that was right there"
-  // set to highlight on the frozen board. Board is locked and un-shuffleable
-  // once ended, so this is safe to memoize off the stable ended-state board.
+  // Once time's up, highlight only pairs that were actually DEALT together
+  // (same pairId) and are still both sitting on the board unmatched — the
+  // real "duh, that was right there" set.
+  //
+  // This deliberately does NOT check every board word against every other
+  // for any valid compound (an earlier version did). That check is
+  // technically accurate to the live matching rules, but the refill mix
+  // (see refill.js's MAX_ORPHANS/ORPHAN_COMPLETE_CHANCE) keeps most on-board
+  // words as orphans whose true partner isn't dealt yet at all, sitting in
+  // orphanQueue, not on the board. With a dense ~860-entry compound bank,
+  // almost any random leftover word still happens to form SOME real
+  // compound with SOME other leftover word, so that check lit up nearly the
+  // entire board nearly every game — technically correct, practically
+  // useless as a "here's what you missed" signal. Same pairId still present
+  // twice is a much smaller, much more real set.
   const missedIndices = useMemo(() => {
     if (gameStatus !== 'ended' || !game) return [];
-    const filled = game.board.reduce((acc, cell, i) => {
-      if (cell) acc.push(i);
-      return acc;
-    }, []);
-    const missed = new Set();
-    for (let a = 0; a < filled.length; a++) {
-      for (let b = a + 1; b < filled.length; b++) {
-        const i = filled[a];
-        const j = filled[b];
-        const wordA = game.board[i].word;
-        const wordB = game.board[j].word;
-        if (isValidCompound(wordA, wordB) || isValidCompound(wordB, wordA)) {
-          missed.add(i);
-          missed.add(j);
-        }
-      }
+    const cellsByPairId = new Map();
+    game.board.forEach((cell, i) => {
+      if (!cell) return;
+      if (!cellsByPairId.has(cell.pairId)) cellsByPairId.set(cell.pairId, []);
+      cellsByPairId.get(cell.pairId).push(i);
+    });
+    const missed = [];
+    for (const indices of cellsByPairId.values()) {
+      if (indices.length === 2) missed.push(...indices);
     }
-    return [...missed];
+    return missed;
   }, [gameStatus, game]);
 
   const generateShareText = useCallback(() => {
