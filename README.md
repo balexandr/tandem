@@ -1,4 +1,4 @@
-# Tandem — Daily Word Pair Sprint
+# Tandem: Daily Word Pair Sprint
 
 A daily 60-second word game: click two words that pair up, in order,
 before the clock runs out.
@@ -9,13 +9,13 @@ Part of the [NoodleGames](https://noodlegames.co) family.
 
 ## How to play
 
-Tap a word, then tap the one that pairs with it — PENCIL, then CASE.
+Tap a word, then tap the one that pairs with it: PENCIL, then CASE.
 Order matters, same as the words in a real compound word.
 
 - Right pair: both tiles clear and two new words take their place instantly.
-- Wrong pair: a quick red flash, no penalty — the clock keeps running.
+- Wrong pair: a quick red flash, no penalty. The clock keeps running.
 - Every match adds **15 seconds** to the clock, so a run isn't capped at
-  60 seconds — a strong run can stretch well past it.
+  60 seconds. A strong run can stretch well past it.
 - Stuck? Tap **Shuffle** to rearrange the tiles currently on the board
   (same pairs, same score, free, no penalty) without dealing a new set.
 - When time runs out, any pair still sitting on the board unmatched
