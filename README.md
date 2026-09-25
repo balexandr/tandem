@@ -28,8 +28,7 @@ Order matters, same as the words in a real compound word.
 ## Scoring
 
 Pairs found, bucketed into star tiers for the result screen and stats
-modal. Thresholds are a cold guess pending real playtest data — see
-`src/utils/scoring.js` and GAME_DESIGN.md.
+modal.
 
 ---
 
@@ -50,9 +49,5 @@ React + Vite · CSS Modules · localStorage · GitHub Pages
 
 `src/data/wordBank.js` holds hundreds of fact-checked real compound-word
 pairs. `selectDailyPool(dateKey, count)` deterministically draws that day's
-set from it (same pool for every player on a given date) while guaranteeing
-no word is reused across two pairs in the same day's set — see the file's
-top comment and GAME_DESIGN.md's "Generation" section for why that
-constraint matters.
-
-See [GAME_DESIGN.md](./GAME_DESIGN.md) for the full design history.
+set from it (same pool for every player on a given date), guaranteeing no
+word is reused across two pairs in the same day's set.
