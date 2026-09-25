@@ -14,7 +14,13 @@ Order matters, same as the words in a real compound word.
 
 - Right pair: both tiles clear and two new words take their place instantly.
 - Wrong pair: a quick red flash, no penalty — the clock keeps running.
-- Score = pairs found in 60 seconds.
+- Every match adds **15 seconds** to the clock, so a run isn't capped at
+  60 seconds — a strong run can stretch well past it.
+- Stuck? Tap **Shuffle** to rearrange the tiles currently on the board
+  (same pairs, same score, free, no penalty) without dealing a new set.
+- When time runs out, any pair still sitting on the board unmatched
+  pulses amber for a moment before the result screen appears, so you
+  can see what was right there.
 - One attempt per day, same word set for everyone, resets at midnight ET.
 
 ---
