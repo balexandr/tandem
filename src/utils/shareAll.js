@@ -25,6 +25,7 @@ const GAMES = [
   { id: 'realm', label: 'Realm' },
   { id: 'tandem', label: 'Tandem' },
   { id: 'dial', label: 'Dial' },
+  { id: 'weave', label: 'Weave' },
 ];
 
 const KEY_PREFIX = 'noodle-share-';
