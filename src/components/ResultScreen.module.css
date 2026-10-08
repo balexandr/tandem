@@ -87,8 +87,9 @@
 }
 
 .ratingEmoji {
-  font-size: 2.2rem;
-  display: block;
+  display: flex;
+  justify-content: center;
+  color: var(--accent);
   margin-bottom: 4px;
 }
 
@@ -133,6 +134,10 @@
 }
 
 .metricValue {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--accent);
@@ -210,6 +215,10 @@
 }
 
 .shareButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   width: 100%;
   padding: 12px;
   background: var(--accent);

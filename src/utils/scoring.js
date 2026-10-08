@@ -13,10 +13,6 @@ export function getTier(score) {
   return found ? found.stars : 0;
 }
 
-export function starsText(stars) {
-  return stars > 0 ? '⭐'.repeat(stars) : '0';
-}
-
 // Shared by the result screen and the share text so a 3-minute run reads
 // as "3:07" in both places, not "187s" in one and "3:07" in the other.
 export function formatElapsed(seconds) {

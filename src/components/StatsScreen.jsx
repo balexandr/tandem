@@ -1,4 +1,4 @@
-import { starsText } from '../utils/scoring';
+import { IconClose, IconStar } from './Icons';
 import styles from './StatsScreen.module.css';
 
 export default function StatsScreen({ stats, onClose }) {
@@ -10,7 +10,7 @@ export default function StatsScreen({ stats, onClose }) {
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
           <h2 className={styles.title}>Statistics</h2>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Close">✕</button>
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Close"><IconClose /></button>
         </div>
 
         <div className={styles.statsGrid}>
@@ -46,7 +46,9 @@ export default function StatsScreen({ stats, onClose }) {
             const pct = count > 0 ? Math.max(Math.round((count / maxCount) * 100), 6) : 0;
             return (
               <div key={tier} className={styles.distRow}>
-                <span className={styles.distTierLabel}>{tier > 0 ? starsText(tier) : '0'}</span>
+                <span className={styles.distTierLabel}>
+                  {tier > 0 ? Array.from({ length: tier }).map((_, i) => <IconStar key={i} size={13} />) : '0'}
+                </span>
                 <div className={styles.distBarTrack}>
                   <div className={styles.distBar} style={{ width: `${pct}%` }} />
                 </div>

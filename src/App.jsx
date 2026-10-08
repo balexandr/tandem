@@ -9,6 +9,7 @@ import styles from './App.module.css';
 import { GameLogo } from './components/GameLogo';
 import { NoodleLogoIcon } from './components/NoodleLogo';
 import { recordTodayShare, getCompletedTodayCount, buildShareAllText, TOTAL_GAMES } from './utils/shareAll';
+import { IconCheckmark, IconShare } from './components/Icons';
 
 const HOW_TO_PLAY_KEY = 'tandem-how-to-play-seen';
 
@@ -39,7 +40,7 @@ export default function App() {
   const [showStats, setShowStats] = useState(false);
   const [resultDismissed, setResultDismissed] = useState(false);
   // Hold the result modal back a beat when time runs out so the player sees
-  // the frozen board with missed pairs highlighted first — the "duh" moment
+  // the frozen board with missed pairs highlighted first, the "duh" moment
   // only lands if they actually see it before being whisked to the share
   // screen. Same pattern as Dial's win-reveal delay.
   const [revealResult, setRevealResult] = useState(false);
@@ -105,7 +106,9 @@ export default function App() {
           className={`${styles.footerShareAll} ${shareAllCopied ? styles.copied : ''}`}
           onClick={handleShareAll}
         >
-          {shareAllCopied ? '✓ Copied' : `⬆ Share all completed (${shareAllCount}/${TOTAL_GAMES})`}
+          {shareAllCopied
+            ? <><IconCheckmark size={13} /> Copied</>
+            : <><IconShare size={13} /> Share all completed ({shareAllCount}/{TOTAL_GAMES})</>}
         </button>
       )}
       <a href="https://noodlegames.co/privacy" target="_blank" rel="noopener noreferrer" className={styles.footerPrivacy}>Privacy Policy</a>
@@ -159,7 +162,7 @@ export default function App() {
           <div className={styles.scoreBlock}>
             <span className={styles.scoreLabel}>Pairs</span>
             {/* key={score} remounts the span on every match, replaying the
-                CSS pop animation for free — no extra state needed. */}
+                CSS pop animation for free, no extra state needed. */}
             <span key={score} className={styles.scoreValue}>{score}</span>
           </div>
           <button

@@ -1,3 +1,4 @@
+import { IconTap, IconCheckCircle, IconXCircle, IconTimer, IconCheckmark } from './Icons';
 import styles from './HowToPlay.module.css';
 
 export default function HowToPlay({ onClose }) {
@@ -12,28 +13,28 @@ export default function HowToPlay({ onClose }) {
 
         <div className={styles.steps}>
           <div className={styles.step}>
-            <span className={styles.stepIcon}>👆</span>
+            <span className={styles.stepIcon}><IconTap /></span>
             <div>
               <p className={styles.stepTitle}>Tap the first word, then the second</p>
               <p className={styles.stepDesc}>PENCIL, then CASE. Order matters, same as the words in a real compound word.</p>
             </div>
           </div>
           <div className={styles.step}>
-            <span className={styles.stepIcon}>✅</span>
+            <span className={styles.stepIcon}><IconCheckCircle /></span>
             <div>
               <p className={styles.stepTitle}>Right pair? It clears</p>
               <p className={styles.stepDesc}>Both tiles vanish and two brand new words take their place instantly.</p>
             </div>
           </div>
           <div className={styles.step}>
-            <span className={styles.stepIcon}>❌</span>
+            <span className={styles.stepIcon}><IconXCircle /></span>
             <div>
               <p className={styles.stepTitle}>Wrong guess costs nothing</p>
               <p className={styles.stepDesc}>Just a red flash. The clock keeps running, nothing else changes. Guess freely.</p>
             </div>
           </div>
           <div className={styles.step}>
-            <span className={styles.stepIcon}>⏱️</span>
+            <span className={styles.stepIcon}><IconTimer /></span>
             <div>
               <p className={styles.stepTitle}>60 seconds to start, +15s per match</p>
               <p className={styles.stepDesc}>Every pair you find adds time, so a good streak keeps the clock alive. One attempt a day, same word set for everyone today.</p>
@@ -47,7 +48,7 @@ export default function HowToPlay({ onClose }) {
             <span className={styles.exTile}>PENCIL</span>
             <span className={styles.exArrow}>→</span>
             <span className={styles.exTile}>CASE</span>
-            <span className={styles.exCheck}>✅</span>
+            <span className={styles.exCheck}><IconCheckmark size={18} /></span>
           </div>
           <p className={styles.exampleCaption}>Tap PENCIL first, then CASE, to clear the pair.</p>
         </div>
