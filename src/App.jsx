@@ -84,7 +84,7 @@ export default function App() {
   useEffect(() => {
     if (gameStatus !== 'ended') return;
     const t = setTimeout(() => {
-      const pending = toLeaderboardScore(score);
+      const pending = toLeaderboardScore(score, elapsedSeconds);
       fetchTodayBoard('tandem', dateKey).then((board) => {
         if (!board.config) return;
         if (findMyRow('tandem', board.rows)) return;
@@ -257,7 +257,7 @@ export default function App() {
       {showLeaderboard && (
         <LeaderboardPanel
           dateKey={dateKey}
-          pendingScore={gameStatus === 'ended' ? toLeaderboardScore(score) : null}
+          pendingScore={gameStatus === 'ended' ? toLeaderboardScore(score, elapsedSeconds) : null}
           onClose={() => setShowLeaderboard(false)}
         />
       )}
