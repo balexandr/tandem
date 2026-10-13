@@ -11,6 +11,7 @@ import { GameLogo } from './components/GameLogo';
 import { NoodleLogoIcon } from './components/NoodleLogo';
 import { recordTodayShare, getCompletedTodayCount, buildShareAllText, TOTAL_GAMES } from './utils/shareAll';
 import { toLeaderboardScore } from './utils/leaderboardScore';
+import { fetchTodayBoard, findMyRow, wouldQualify } from './utils/leaderboard';
 import { IconCheckmark, IconShare, IconLeaderboard } from './components/Icons';
 
 const HOW_TO_PLAY_KEY = 'tandem-how-to-play-seen';
@@ -72,6 +73,27 @@ export default function App() {
       recordGame(dateKey, score);
       recordTodayShare('tandem', dateKey, generateShareText());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameStatus]);
+
+  // Auto-opens the leaderboard (initials prompt included) a beat after
+  // a qualifying run, instead of making the player click "today's
+  // leaderboard" to find out they made the cut. Longer delay than the
+  // other games since this one already waits 1600ms before revealing
+  // the result screen itself (see revealResult above).
+  useEffect(() => {
+    if (gameStatus !== 'ended') return;
+    const t = setTimeout(() => {
+      const pending = toLeaderboardScore(score);
+      fetchTodayBoard('tandem', dateKey).then((board) => {
+        if (!board.config) return;
+        if (findMyRow('tandem', board.rows)) return;
+        if (wouldQualify(pending.score, board.rows, board.config)) {
+          setShowLeaderboard(true);
+        }
+      });
+    }, 3200);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameStatus]);
 
