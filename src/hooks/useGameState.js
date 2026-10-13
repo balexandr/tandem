@@ -87,14 +87,10 @@ export function useGameState() {
   const timerRef = useRef(null);
   // Tracks the last timeBonusToken we've already applied a bonus for, so
   // the effect below (which fires whenever a match bumps that token) never
-  // double-applies on a re-render. Previously this was done by writing a
-  // ref inside setGame's functional updater and reading it synchronously
-  // right after calling setGame, relying on React running that updater
-  // eagerly. That only actually happens on some renders (an internal
-  // optimization, not a guarantee): confirmed live that the very first
-  // match of a run got its +15s but every match after that silently
-  // didn't. Watching the real committed state via an effect instead is
-  // dependable regardless of React's internal scheduling.
+  // double-applies on a re-render. Reading a ref written synchronously
+  // inside setGame's updater is not reliable, since React doesn't guarantee
+  // that updater runs eagerly on every render; watching the real committed
+  // state via an effect instead is.
   const appliedTimeBonusToken = useRef(0);
 
   // Init — restore today's in-progress or finished attempt if one exists,

@@ -43,10 +43,10 @@ export default function App() {
   const [showStats, setShowStats] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [resultDismissed, setResultDismissed] = useState(false);
-  // Hold the result modal back a beat when time runs out so the player sees
-  // the frozen board with missed pairs highlighted first, the "duh" moment
-  // only lands if they actually see it before being whisked to the share
-  // screen. Same pattern as Dial's win-reveal delay.
+  // Hold the result modal back a beat when time runs out so the player
+  // sees the frozen board with missed pairs highlighted first, before
+  // being whisked to the share screen. Same pattern as Dial's win-reveal
+  // delay.
   const [revealResult, setRevealResult] = useState(false);
   useEffect(() => {
     if (gameStatus !== 'ended') { setRevealResult(false); return; }
@@ -79,8 +79,8 @@ export default function App() {
   // Auto-opens the leaderboard (initials prompt included) a beat after
   // a qualifying run, instead of making the player click "today's
   // leaderboard" to find out they made the cut. Longer delay than the
-  // other games since this one already waits 1600ms before revealing
-  // the result screen itself (see revealResult above).
+  // other games since this one already waits 1600ms to reveal the
+  // result screen itself (see revealResult above).
   useEffect(() => {
     if (gameStatus !== 'ended') return;
     const t = setTimeout(() => {
