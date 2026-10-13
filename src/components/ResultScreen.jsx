@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getTier, formatElapsed } from '../utils/scoring';
-import { IconClose, IconCheckmark, IconShare, IconTrophy, IconFlame, IconThumbsUp, IconSmile, IconMedal, IconStar } from './Icons';
+import { IconClose, IconCheckmark, IconShare, IconTrophy, IconFlame, IconThumbsUp, IconSmile, IconMedal, IconStar, IconLeaderboard } from './Icons';
 import styles from './ResultScreen.module.css';
 
 function getTimeToMidnight() {
@@ -26,7 +26,7 @@ function getRating(tier) {
   return { Icon: IconSmile, label: 'Warming Up' };
 }
 
-export default function ResultScreen({ puzzleNumber, score, elapsedSeconds, boardCleared, generateShareText, stats, onDismiss }) {
+export default function ResultScreen({ puzzleNumber, score, elapsedSeconds, boardCleared, generateShareText, stats, onDismiss, onViewLeaderboard }) {
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState(getTimeToMidnight());
   const [showContent, setShowContent] = useState(false);
@@ -142,6 +142,10 @@ export default function ResultScreen({ puzzleNumber, score, elapsedSeconds, boar
           onClick={handleShare}
         >
           {copied ? <><IconCheckmark /> Copied to clipboard</> : <><IconShare /> Share your result</>}
+        </button>
+
+        <button className={styles.leaderboardButton} onClick={onViewLeaderboard}>
+          <IconLeaderboard size={16} /> View today's leaderboard
         </button>
 
         <div className={styles.countdown}>
