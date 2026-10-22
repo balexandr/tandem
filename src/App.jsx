@@ -11,7 +11,8 @@ import { GameLogo } from './components/GameLogo';
 import { NoodleLogoIcon } from './components/NoodleLogo';
 import { recordTodayShare, getCompletedTodayCount, buildShareAllText, TOTAL_GAMES } from './utils/shareAll';
 import { toLeaderboardScore } from './utils/leaderboardScore';
-import { fetchTodayBoard, findMyRow, wouldQualify } from './utils/leaderboard';
+import { fetchTodayBoard, findMyRow, wouldQualify, submitAllTimeScore } from './utils/leaderboard';
+import { getCurrentUser } from './lib/auth';
 import { IconCheckmark, IconShare, IconLeaderboard } from './components/Icons';
 
 const HOW_TO_PLAY_KEY = 'tandem-how-to-play-seen';
@@ -72,6 +73,19 @@ export default function App() {
     if (gameStatus === 'ended') {
       recordGame(dateKey, score);
       recordTodayShare('tandem', dateKey, generateShareText());
+      // Fire-and-forget all-time submission — no reason to make a
+      // signed-in player open the leaderboard and switch to the
+      // All-Time tab themselves just to get considered. The RPC is
+      // already safe to call on every run: it silently no-ops if the
+      // score isn't an improvement on their own existing one and
+      // isn't currently top 10 (see LEADERBOARD_DESIGN.md), so this
+      // never needs its own qualifying check first.
+      getCurrentUser().then((user) => {
+        if (!user) return;
+        submitAllTimeScore('tandem', toLeaderboardScore(score, elapsedSeconds))
+          .then((result) => { if (result.error) console.error('submitAllTimeScore failed:', result.error); })
+          .catch((err) => console.error('submitAllTimeScore failed:', err));
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameStatus]);

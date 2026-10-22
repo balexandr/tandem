@@ -93,6 +93,49 @@ export async function submitScore(gameId, { score, tiebreak = null, scoreDisplay
   }
 }
 
+// All-time board: never resets, requires a signed-in account (see
+// LEADERBOARD_DESIGN.md's "All-Time Leaderboard" section), keyed by
+// (game_id, user_id) instead of (game_id, date, device_id) — one row
+// per account, no `date` filter.
+export const ALLTIME_LEADERBOARD_SIZE = 10
+
+export async function fetchAllTimeBoard(gameId) {
+  if (!supabase) return { rows: [], config: null }
+  try {
+    const [{ data: config }, { data: rows }] = await Promise.all([
+      supabase.from('leaderboard_alltime_games').select('sort_direction, tiebreak_direction').eq('game_id', gameId).single(),
+      supabase.from('leaderboard_alltime_scores').select('user_id, display_name, avatar_id, score, tiebreak, score_display').eq('game_id', gameId),
+    ])
+    if (!config) return { rows: [], config: null }
+    return { rows: sortRows(rows || [], config), config }
+  } catch (err) {
+    console.error('fetchAllTimeBoard failed:', err)
+    return { rows: [], config: null }
+  }
+}
+
+export function findMyAllTimeRow(userId, rows) {
+  if (!userId) return null
+  return rows.find((r) => r.user_id === userId) || null
+}
+
+export async function submitAllTimeScore(gameId, { score, tiebreak = null, scoreDisplay }) {
+  if (!supabase) return { accepted: false, rank: null, error: 'offline' }
+  try {
+    const { data, error } = await supabase.rpc('submit_alltime_score', {
+      p_game_id: gameId,
+      p_score: score,
+      p_tiebreak: tiebreak,
+      p_score_display: scoreDisplay,
+    })
+    if (error) return { accepted: false, rank: null, error: error.message }
+    if (!data?.[0]) return { accepted: false, rank: null, error: 'no response' }
+    return { accepted: data[0].accepted, rank: data[0].rank, error: null }
+  } catch (err) {
+    return { accepted: false, rank: null, error: err.message || String(err) }
+  }
+}
+
 const INITIALS_COOKIE = 'noodle_initials'
 
 // Shared across every game on *.noodlegames.co (cookie Domain, not
