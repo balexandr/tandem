@@ -264,6 +264,44 @@ export const WORD_BANK = [
   ['SNOW', 'DRIFT'], ['FISH', 'EYE'], ['TAIL', 'GATE'], ['EYE', 'GLASS'],
   ['OVER', 'LAP'], ['BALL', 'PARK'], ['OVER', 'RUN'], ['UNDER', 'SCORE'],
   ['OFF', 'SPRING'], ['OFF', 'WHITE'], ['TAIL', 'WIND'],
+
+  // Fourth batch, added 2026-10-17 — user said the bank felt repetitive.
+  // Root cause: BACK/OVER/UNDER/FIRE/HAND/SNOW alone cover ~130 of the
+  // existing pairs, so one of them lands in nearly every day's pool. This
+  // batch deliberately avoids those roots and leans on fresh ones (school,
+  // grandparent/family, time, coastal, sports) to dilute that skew instead
+  // of adding more weight to the already-dominant families.
+  ['GARDEN', 'PARTY'], ['FARM', 'YARD'], ['FARM', 'STAND'], ['FARM', 'WORKER'],
+  ['SCHOOL', 'BUS'], ['SCHOOL', 'YARD'], ['SCHOOL', 'HOUSE'], ['SCHOOL', 'BOY'],
+  ['SCHOOL', 'GIRL'], ['SCHOOL', 'WORK'], ['SCHOOL', 'MATE'], ['SCHOOL', 'ROOM'],
+  ['SCHOOL', 'BAG'], ['CITY', 'SCAPE'], ['CITY', 'HALL'], ['CITY', 'WIDE'],
+  ['CITY', 'BLOCK'], ['TOWN', 'SHIP'], ['PARK', 'BENCH'], ['PARK', 'LAND'],
+  ['STAGE', 'HAND'], ['STAGE', 'LIGHT'], ['STAGE', 'CRAFT'], ['MUSIC', 'BOX'],
+  ['DANCE', 'FLOOR'], ['DANCE', 'HALL'], ['GAME', 'PLAN'], ['GAME', 'KEEPER'],
+  ['GAME', 'DAY'], ['GAME', 'CHANGER'], ['TEAM', 'MATE'], ['TEAM', 'WORK'],
+  ['CLUB', 'FOOT'], ['CAMP', 'FIRE'], ['CAMP', 'GROUND'], ['CAMP', 'SITE'],
+  ['TRAIL', 'BLAZER'], ['TRAIL', 'HEAD'], ['TRAIN', 'WRECK'], ['TRAIN', 'YARD'],
+  ['BOAT', 'LOAD'], ['SHIP', 'MATE'], ['CAR', 'SICK'], ['CAR', 'JACK'],
+  ['BIKE', 'RACK'], ['ROAD', 'KILL'], ['ROAD', 'MAP'], ['ROAD', 'TRIP'],
+  ['DRAW', 'BRIDGE'], ['RIVER', 'BANK'], ['RIVER', 'BED'], ['LAKE', 'FRONT'],
+  ['OCEAN', 'FRONT'], ['BEACH', 'FRONT'], ['BEACH', 'BALL'], ['BEACH', 'COMBER'],
+  ['BEACH', 'HOUSE'], ['FOREST', 'FIRE'], ['JUNGLE', 'GYM'], ['CAVE', 'MAN'],
+  ['CAVE', 'IN'], ['COAST', 'LINE'], ['COAST', 'GUARD'], ['DOCK', 'YARD'],
+  ['CLOCK', 'WORK'], ['CLOCK', 'TOWER'], ['BELL', 'TOWER'], ['GLASS', 'BLOWER'],
+  ['GLASS', 'HOUSE'], ['PAPER', 'WEIGHT'], ['PAPER', 'CUT'], ['PAPER', 'TRAIL'],
+  ['STONE', 'MASON'], ['CROSS', 'WALK'], ['CROSS', 'ROAD'], ['CROSS', 'FIRE'],
+  ['CROSS', 'BOW'], ['CROSS', 'WORD'], ['CROSS', 'OVER'], ['CROSS', 'CHECK'],
+  ['GRAND', 'FATHER'], ['GRAND', 'MOTHER'], ['GRAND', 'CHILD'], ['GRAND', 'STAND'],
+  ['GRAND', 'SON'], ['GRAND', 'DAUGHTER'], ['GRAND', 'PARENT'], ['STEP', 'FATHER'],
+  ['STEP', 'MOTHER'], ['STEP', 'CHILD'], ['STEP', 'SON'], ['STEP', 'DAUGHTER'],
+  ['STEP', 'BROTHER'], ['STEP', 'SISTER'], ['GOD', 'FATHER'], ['GOD', 'MOTHER'],
+  ['GOD', 'CHILD'], ['GOD', 'SEND'], ['FOSTER', 'CHILD'], ['FOSTER', 'HOME'],
+  ['KING', 'DOM'], ['KING', 'PIN'], ['PLAY', 'OFF'], ['FAST', 'BALL'],
+  ['CURVE', 'BALL'], ['FOUL', 'BALL'], ['LAY', 'UP'], ['SLAM', 'DUNK'],
+  ['FREE', 'THROW'], ['KICK', 'OFF'], ['FACE', 'OFF'], ['TIME', 'LINE'],
+  ['TIME', 'KEEPER'], ['TIME', 'TABLE'], ['TIME', 'ZONE'], ['TIME', 'FRAME'],
+  ['TIME', 'STAMP'], ['TIME', 'SHARE'], ['MONEY', 'BAG'], ['MONEY', 'MAKER'],
+  ['PIGGY', 'BANK'], ['BANK', 'ROLL'],
 ];
 
 // Lookup for "is FIRST+SECOND a real compound", regardless of which pair
