@@ -13,7 +13,7 @@ import { recordTodayShare, getCompletedTodayCount, buildShareAllText, TOTAL_GAME
 import { toLeaderboardScore } from './utils/leaderboardScore';
 import { fetchTodayBoard, findMyRow, wouldQualify, submitAllTimeScore } from './utils/leaderboard';
 import { getCurrentUser } from './lib/auth';
-import { IconCheckmark, IconShare, IconLeaderboard } from './components/Icons';
+import { IconCheckmark, IconShare, IconLeaderboard, IconTrophy } from './components/Icons';
 
 const HOW_TO_PLAY_KEY = 'tandem-how-to-play-seen';
 
@@ -57,6 +57,15 @@ export default function App() {
   const [shareAllCount, setShareAllCount] = useState(0);
   const [shareAllCopied, setShareAllCopied] = useState(false);
   const currentYear = new Date().getFullYear();
+  // Set to the rank just earned on the all-time board; the submission
+  // itself is already fire-and-forget (see the effect below), this is
+  // only a brief heads-up so "automatic" doesn't also mean "invisible."
+  const [allTimeRank, setAllTimeRank] = useState(null);
+  useEffect(() => {
+    if (allTimeRank == null) return;
+    const t = setTimeout(() => setAllTimeRank(null), 4500);
+    return () => clearTimeout(t);
+  }, [allTimeRank]);
 
   useEffect(() => {
     try {
@@ -83,7 +92,10 @@ export default function App() {
       getCurrentUser().then((user) => {
         if (!user) return;
         submitAllTimeScore('tandem', toLeaderboardScore(score, elapsedSeconds))
-          .then((result) => { if (result.error) console.error('submitAllTimeScore failed:', result.error); })
+          .then((result) => {
+            if (result.error) { console.error('submitAllTimeScore failed:', result.error); return; }
+            if (result.accepted) setAllTimeRank(result.rank);
+          })
           .catch((err) => console.error('submitAllTimeScore failed:', err));
       });
     }
@@ -264,6 +276,13 @@ export default function App() {
           onDismiss={() => setResultDismissed(true)}
           onViewLeaderboard={() => setShowLeaderboard(true)}
         />
+      )}
+
+      {allTimeRank != null && (
+        <div className={styles.allTimeToast} role="status">
+          <IconTrophy size={18} />
+          <span>You're #{allTimeRank} on the All-Time board!</span>
+        </div>
       )}
 
       {showHowToPlay && <HowToPlay onClose={dismissHowToPlay} />}
