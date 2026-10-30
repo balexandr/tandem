@@ -209,7 +209,14 @@ export default function LeaderboardPanel({ dateKey, pendingScore, onClose }) {
 
             {!allTimeBoard && <p className={styles.loading}>Loading…</p>}
 
-            {allTimeBoard && (
+            {allTimeBoard?.error && (
+              <p className={styles.outcomeMissed}>
+                Couldn't load the all-time board — try again in a bit.
+                <br /><span className={styles.errorDetail}>{allTimeBoard.error}</span>
+              </p>
+            )}
+
+            {allTimeBoard && !allTimeBoard.error && (
               <ol className={styles.list}>
                 {allTimeBoard.rows.length === 0 && <li className={styles.empty}>No all-time scores yet. Be the first.</li>}
                 {allTimeBoard.rows.map((row, i) => (

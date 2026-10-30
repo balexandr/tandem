@@ -100,17 +100,17 @@ export async function submitScore(gameId, { score, tiebreak = null, scoreDisplay
 export const ALLTIME_LEADERBOARD_SIZE = 10
 
 export async function fetchAllTimeBoard(gameId) {
-  if (!supabase) return { rows: [], config: null }
+  if (!supabase) return { rows: [], config: null, error: null }
   try {
-    const [{ data: config }, { data: rows }] = await Promise.all([
+    const [{ data: config, error: configError }, { data: rows, error: rowsError }] = await Promise.all([
       supabase.from('leaderboard_alltime_games').select('sort_direction, tiebreak_direction').eq('game_id', gameId).single(),
       supabase.from('leaderboard_alltime_scores').select('user_id, display_name, avatar_id, score, tiebreak, score_display').eq('game_id', gameId),
     ])
-    if (!config) return { rows: [], config: null }
-    return { rows: sortRows(rows || [], config), config }
+    if (!config) return { rows: [], config: null, error: configError?.message || null }
+    return { rows: sortRows(rows || [], config), config, error: rowsError?.message || null }
   } catch (err) {
     console.error('fetchAllTimeBoard failed:', err)
-    return { rows: [], config: null }
+    return { rows: [], config: null, error: err.message || String(err) }
   }
 }
 
